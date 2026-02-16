@@ -174,7 +174,7 @@ async function callAI(prompt, apiKey, variant, mode) {
   const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
   try {
-    const model = 'gemini-2.5-pro-preview-06-05';
+    const model = 'gemini-2.5-flash';
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const response = await fetch(apiUrl, {
@@ -532,7 +532,7 @@ export async function generate(fact, mode, tone, apiKey, variant = 'normal') {
 
   // フォールバック
   gateLog.push('--- フォールバック発動 ---');
-  const data = createFallback(fact);
+  const data = createFallback(fact, variant);
   return { data, meta: { attempt: MAX_RETRY + 1, fallback: true, gateLog } };
 }
 
