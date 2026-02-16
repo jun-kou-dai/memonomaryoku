@@ -61,6 +61,7 @@ async function handleGenerate($, variant) {
   try {
     const { data, meta } = await generate(fact, mode, tone, apiKey, variant);
     renderOutput(data, meta);
+    document.querySelector('.output-section').scrollIntoView({ behavior: 'smooth' });
   } catch (e) {
     showError(e.message);
   } finally {
