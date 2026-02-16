@@ -1,10 +1,6 @@
 const CACHE_NAME = 'buki-memo-v1';
-const STATIC_ASSETS = ['/', '/index.html'];
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
-  );
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
@@ -17,9 +13,26 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Network-first: オンラインなら最新を取得、失敗したらキャッシュを返す
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  // APIリクエストはキャッシュしない
+  if (event.request.url.includes('api.anthropic.com')) return;
+
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    fetch(event.request)
+      .then((response) => {
+        // 成功したレスポンスをキャッシュに保存
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, clone);
+        });
+        return response;
+      })
+      .catch(() => {
+        // オフライン時はキャッシュから返す
+        return caches.match(event.request);
+      })
   );
 });
