@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#e94560" />
+  <link rel="manifest" href="/manifest.json" />
+  <title>武器メモ / 次の一手メーカー</title>
+</head>
+<body>
+  <!-- HEADER -->
+  <div class="header">
+    <h1>武器メモ / 次の一手メーカー</h1>
+    <p>Fact 1文 → 5枚の武器カードを生成</p>
+  </div>
+
+  <div class="container">
+    <!-- INPUT SECTION -->
+    <div class="input-section">
+      <label for="fact-input">Fact（事実を1文で）</label>
+      <textarea id="fact-input" placeholder="例：高市内閣、今年中に減税できる？やらないと人気落ちる"></textarea>
+
+      <div class="input-row">
+        <div class="input-group">
+          <label for="mode-select">Mode</label>
+          <select id="mode-select">
+            <option value="admin">行政・政策</option>
+            <option value="gym">ジム経営</option>
+            <option value="product">プロダクト開発</option>
+            <option value="personal">個人の意思決定</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="tone-range">Tone</label>
+          <input type="range" id="tone-range" min="0" max="4" value="2" />
+          <div class="tone-display" id="tone-display">標準</div>
+        </div>
+      </div>
+
+      <div class="api-key-section">
+        <label for="api-key-input">Anthropic API Key（任意）</label>
+        <input type="password" id="api-key-input" placeholder="sk-ant-..." />
+        <div class="api-key-hint">空欄ならデモデータで動作確認できます</div>
+      </div>
+
+      <div class="button-row">
+        <button class="btn btn-primary" id="btn-generate">生成</button>
+        <button class="btn btn-secondary" id="btn-alternative">別案</button>
+        <button class="btn btn-danger" id="btn-strong-counter">反対側強め</button>
+      </div>
+    </div>
+
+    <!-- FLOW DIAGRAM (無難排除フロー図) -->
+    <div class="flow-section">
+      <h3>無難排除フロー</h3>
+      <div class="flow-diagram">
+        <span class="flow-step generate">生成</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step gate">Quality Gate</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step ok">OK</span>
+        <span class="flow-arrow">|</span>
+        <span class="flow-step retry">再生成(max2)</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step fallback">Fallback</span>
+      </div>
+    </div>
+
+    <!-- LOADING -->
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">生成中... Quality Gate判定中...</div>
+    </div>
+
+    <!-- META INFO -->
+    <div class="meta-info"></div>
+
+    <!-- GATE LOG -->
+    <div class="gate-log">
+      <h3>Quality Gate ログ</h3>
+      <pre></pre>
+    </div>
+
+    <!-- OUTPUT CARDS -->
+    <div class="output-section">
+      <div class="cards-container"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
