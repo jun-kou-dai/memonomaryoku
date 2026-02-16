@@ -224,6 +224,17 @@ body {
   color: var(--accent);
 }
 
+.btn-clear {
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.btn-clear:hover:not(:disabled) {
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+}
+
 .btn-danger {
   background: var(--bg-input);
   color: var(--danger);
@@ -263,6 +274,18 @@ body {
 .loading-text {
   color: var(--text-secondary);
   font-size: 0.9rem;
+}
+
+/* ===== DEMO BANNER ===== */
+.demo-banner {
+  background: var(--warning);
+  color: #1a1a2e;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
 }
 
 /* ===== OUTPUT CARDS ===== */

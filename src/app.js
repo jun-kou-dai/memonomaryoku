@@ -38,6 +38,21 @@ export function initApp() {
   $('#btn-generate').addEventListener('click', () => handleGenerate($, 'normal'));
   $('#btn-alternative').addEventListener('click', () => handleGenerate($, 'alternative'));
   $('#btn-strong-counter').addEventListener('click', () => handleGenerate($, 'strong_counter'));
+
+  // クリアボタン
+  $('#btn-clear').addEventListener('click', () => handleClear($));
+}
+
+function handleClear($) {
+  $('#fact-input').value = '';
+  $('#api-key-input').value = '';
+  $('#mode-select').value = 'admin';
+  $('#tone-range').value = '2';
+  $('#tone-display').textContent = TONE_LABELS[2];
+  hideOutput();
+  // 念のためボタンを有効化
+  isGenerating = false;
+  setButtonsDisabled(false);
 }
 
 async function handleGenerate($, variant) {
@@ -52,6 +67,7 @@ async function handleGenerate($, variant) {
   const mode = $('#mode-select').value;
   const tone = parseInt($('#tone-range').value, 10);
   const apiKey = $('#api-key-input').value.trim();
+  const isDemo = !apiKey;
 
   isGenerating = true;
   setButtonsDisabled(true);
@@ -60,7 +76,7 @@ async function handleGenerate($, variant) {
 
   try {
     const { data, meta } = await generate(fact, mode, tone, apiKey, variant);
-    renderOutput(data, meta);
+    renderOutput(data, meta, isDemo, variant);
     document.querySelector('.output-section').scrollIntoView({ behavior: 'smooth' });
   } catch (e) {
     showError(e.message);
@@ -91,20 +107,24 @@ function hideOutput() {
 }
 
 function showError(message) {
-  let errorEl = document.querySelector('.error-message');
-  if (!errorEl) {
-    errorEl = document.createElement('div');
-    errorEl.className = 'error-message';
-    document.querySelector('.loading').insertAdjacentElement('afterend', errorEl);
-  }
+  const errorEl = document.querySelector('.error-message');
   errorEl.textContent = `エラー: ${message}`;
   errorEl.classList.add('active');
 }
 
-function renderOutput(data, meta) {
+function renderOutput(data, meta, isDemo, variant) {
   const outputSection = document.querySelector('.output-section');
   const cardsContainer = document.querySelector('.cards-container');
   cardsContainer.innerHTML = '';
+
+  // デモモード表示
+  if (isDemo) {
+    const variantLabel = variant === 'alternative' ? '【別案】' : variant === 'strong_counter' ? '【反対側強め】' : '';
+    const demoBanner = document.createElement('div');
+    demoBanner.className = 'demo-banner';
+    demoBanner.innerHTML = `${variantLabel} デモモード — API Keyを入力すると、あなたの入力内容に合わせたAI回答が生成されます`;
+    cardsContainer.appendChild(demoBanner);
+  }
 
   CARD_DEFS.forEach((def) => {
     const card = createCard(def, data[def.key]);

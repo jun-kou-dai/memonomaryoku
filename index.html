@@ -48,11 +48,13 @@
         <button class="btn btn-primary" id="btn-generate">生成</button>
         <button class="btn btn-secondary" id="btn-alternative" title="違う角度・切り口で再生成">別案</button>
         <button class="btn btn-danger" id="btn-strong-counter" title="反論を最強にして再生成">反対側強め</button>
+        <button class="btn btn-clear" id="btn-clear" title="入力と結果をクリア">クリア</button>
       </div>
       <div class="button-desc">
-        <span><strong>生成</strong>＝武器カード5枚を作成</span>
+        <span><strong>生成</strong>＝武器カード作成</span>
         <span><strong>別案</strong>＝違う角度で再生成</span>
-        <span><strong>反対側強め</strong>＝最強の反論付きで再生成</span>
+        <span><strong>反対側強め</strong>＝最強の反論付き</span>
+        <span><strong>クリア</strong>＝全部消す</span>
       </div>
     </div>
 
@@ -77,6 +79,9 @@
       <div class="spinner"></div>
       <div class="loading-text">生成中... Quality Gate判定中...</div>
     </div>
+
+    <!-- ERROR MESSAGE -->
+    <div class="error-message"></div>
 
     <!-- META INFO -->
     <div class="meta-info"></div>
