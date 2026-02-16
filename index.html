@@ -11,7 +11,7 @@
   <!-- HEADER -->
   <div class="header">
     <h1>武器メモ / 次の一手メーカー</h1>
-    <p>Fact 1文 → 5枚の武器カードを生成</p>
+    <p>事実を1文入力するだけで、議論に使える5枚の「武器カード」を自動生成します</p>
   </div>
 
   <div class="container">
@@ -43,10 +43,16 @@
         <div class="api-key-hint">空欄ならデモデータで動作確認できます</div>
       </div>
 
+      <div class="button-hint">※ まずFactを入力してから「生成」を押してください。API Key空欄ならデモで動きます。</div>
       <div class="button-row">
         <button class="btn btn-primary" id="btn-generate">生成</button>
-        <button class="btn btn-secondary" id="btn-alternative">別案</button>
-        <button class="btn btn-danger" id="btn-strong-counter">反対側強め</button>
+        <button class="btn btn-secondary" id="btn-alternative" title="違う角度・切り口で再生成">別案</button>
+        <button class="btn btn-danger" id="btn-strong-counter" title="反論を最強にして再生成">反対側強め</button>
+      </div>
+      <div class="button-desc">
+        <span><strong>生成</strong>＝武器カード5枚を作成</span>
+        <span><strong>別案</strong>＝違う角度で再生成</span>
+        <span><strong>反対側強め</strong>＝最強の反論付きで再生成</span>
       </div>
     </div>
 
