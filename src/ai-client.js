@@ -25,39 +25,7 @@ const TONE_LABELS = [
 
 const API_TIMEOUT_MS = 30000; // 30秒タイムアウト
 
-/**
- * メインプロンプトを構築
- */
-function buildPrompt(fact, mode, tone, variant = 'normal') {
-  const modeLabel = MODE_LABELS[mode] || mode;
-  const toneLabel = TONE_LABELS[tone] ?? TONE_LABELS[2];
-
-  let extraInstruction = '';
-  if (variant === 'alternative') {
-    extraInstruction = `
-【追加指示】前回と異なる角度・切り口で回答せよ。同じ結論でも、根拠や視点を変えること。`;
-  } else if (variant === 'strong_counter') {
-    extraInstruction = `
-【追加指示】counterモジュールを特に強化せよ。反論を最も手強い相手が言いそうな内容にし、処理（潰し方）も具体的かつ詳細にすること。`;
-  }
-
-  return `あなたは「武器メモ / 次の一手メーカー」です。
-
-【絶対ルール】
-- 解説・前置き・お世辞は一切禁止。結論から入れ。
-- 転用（別分野への応用）を必ず含めよ。
-- 事実 / 解釈 / 価値（判断）を明確に分けよ。
-- 以下のNGワードを絶対に使うな：「大事」「重要」「バランス」「総合的」「注視」「検討」「様子見」「慎重に」「引き続き」「多角的」「適切に」「一概には」「今後の動向」「見守る」「留意」「踏まえ」「鑑み」
-- 「次の一手」は必ず「今日、具体的にやること1つ」にせよ。抽象的な表現は禁止。
-
-【入力】
-- Fact: ${fact}
-- Mode（領域）: ${modeLabel}
-- Tone: ${toneLabel}
-
-【出力形式】
-必ず以下のJSON形式のみで出力せよ。JSON以外のテキストを一切含めるな。
-
+const JSON_FORMAT = `
 {
   "ichigeki": "（1文の結論。刺さる一言）",
   "branching": [
@@ -78,8 +46,119 @@ function buildPrompt(fact, mode, tone, variant = 'normal') {
     "response": "処理：（その反論の潰し方を具体的に書け）"
   },
   "next_action": "今日やること：（具体的な行動1つ。数字・期限・対象を含めよ）"
+}`;
+
+const NG_WORDS = '「大事」「重要」「バランス」「総合的」「注視」「検討」「様子見」「慎重に」「引き続き」「多角的」「適切に」「一概には」「今後の動向」「見守る」「留意」「踏まえ」「鑑み」';
+
+/**
+ * variant ごとの temperature
+ */
+function getTemperature(variant) {
+  if (variant === 'alternative') return 1.2;
+  if (variant === 'strong_counter') return 0.9;
+  return 0.8;
 }
-${extraInstruction}`;
+
+/**
+ * メインプロンプトを構築（variant ごとに全体を書き分け）
+ */
+function buildPrompt(fact, mode, tone, variant = 'normal') {
+  const modeLabel = MODE_LABELS[mode] || mode;
+  const toneLabel = TONE_LABELS[tone] ?? TONE_LABELS[2];
+
+  if (variant === 'alternative') {
+    return buildAlternativePrompt(fact, modeLabel, toneLabel);
+  }
+  if (variant === 'strong_counter') {
+    return buildStrongCounterPrompt(fact, modeLabel, toneLabel);
+  }
+  return buildNormalPrompt(fact, modeLabel, toneLabel);
+}
+
+function buildNormalPrompt(fact, modeLabel, toneLabel) {
+  return `あなたは「武器メモ / 次の一手メーカー」です。
+
+【絶対ルール】
+- 解説・前置き・お世辞は一切禁止。結論から入れ。
+- 転用（別分野への応用）を必ず含めよ。
+- 事実 / 解釈 / 価値（判断）を明確に分けよ。
+- 以下のNGワードを絶対に使うな：${NG_WORDS}
+- 「次の一手」は必ず「今日、具体的にやること1つ」にせよ。抽象的な表現は禁止。
+
+【入力】
+- Fact: ${fact}
+- Mode（領域）: ${modeLabel}
+- Tone: ${toneLabel}
+
+【出力形式】
+必ず以下のJSON形式のみで出力せよ。JSON以外のテキストを一切含めるな。
+${JSON_FORMAT}`;
+}
+
+function buildAlternativePrompt(fact, modeLabel, toneLabel) {
+  return `あなたは「武器メモ / 次の一手メーカー【逆張りモード】」です。
+
+【このモードの目的】
+通常の分析とは「真逆の立場」「少数派の視点」「一般的でない切り口」から武器カードを作れ。
+多数派が見落としている盲点を突く内容にせよ。
+
+【思考の方向】
+- 通常なら「A」と結論づけるところを、あえて「Aではない」理由を探せ
+- 一般的に正しいとされる意見の裏側を掘れ
+- 「そもそもこの問い自体が間違っている」という可能性を検討せよ
+- 他の分野・時代・国の事例から意外な類似パターンを持ってこい
+
+【絶対ルール】
+- 解説・前置き・お世辞は一切禁止。結論から入れ。
+- 転用（別分野への応用）を必ず含めよ。
+- 事実 / 解釈 / 価値（判断）を明確に分けよ。
+- 以下のNGワードを絶対に使うな：${NG_WORDS}
+- 「次の一手」は必ず「今日、具体的にやること1つ」にせよ。抽象的な表現は禁止。
+- 「一撃」は通常の分析では出てこない、意外性のある結論にせよ。
+
+【入力】
+- Fact: ${fact}
+- Mode（領域）: ${modeLabel}
+- Tone: ${toneLabel}
+
+【出力形式】
+必ず以下のJSON形式のみで出力せよ。JSON以外のテキストを一切含めるな。
+${JSON_FORMAT}`;
+}
+
+function buildStrongCounterPrompt(fact, modeLabel, toneLabel) {
+  return `あなたは「武器メモ / 次の一手メーカー【最強反論モード】」です。
+
+【このモードの目的】
+このFactに対して、最も手強い敵・反対派・批判者の立場から分析せよ。
+まず「一番痛い反論」を考え、それを軸に全カードを構成しろ。
+
+【思考の順序（通常と逆）】
+1. まずcounterを考えろ：この主張を潰しにくる最強の反論者は誰か？その人は何と言うか？
+2. 次にbranchingを考えろ：反論者が突いてくる「条件」は何か？
+3. そしてonepagerを考えろ：反論を受けた上で、それでも成立する論理構成にせよ
+4. ichigekiは「反論を踏まえた上での最終結論」にせよ
+5. next_actionは「反論に備えるための今日の行動」にせよ
+
+【counterの特別ルール】
+- objection: 反論は3文以上、具体的な数字・事例・論理を含めよ。「〜かもしれない」は禁止。断言調で書け。
+- response: 潰し方も3文以上。(1)(2)(3)で番号付きの反撃を書け。
+
+【絶対ルール】
+- 解説・前置き・お世辞は一切禁止。結論から入れ。
+- 転用（別分野への応用）を必ず含めよ。
+- 事実 / 解釈 / 価値（判断）を明確に分けよ。
+- 以下のNGワードを絶対に使うな：${NG_WORDS}
+- 「次の一手」は必ず「今日、具体的にやること1つ」にせよ。抽象的な表現は禁止。
+
+【入力】
+- Fact: ${fact}
+- Mode（領域）: ${modeLabel}
+- Tone: ${toneLabel}
+
+【出力形式】
+必ず以下のJSON形式のみで出力せよ。JSON以外のテキストを一切含めるな。
+${JSON_FORMAT}`;
 }
 
 /**
@@ -105,7 +184,7 @@ async function callAI(prompt, apiKey, variant, mode) {
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
           responseMimeType: 'application/json',
-          temperature: 0.8,
+          temperature: getTemperature(variant),
         },
       }),
       signal: controller.signal,
