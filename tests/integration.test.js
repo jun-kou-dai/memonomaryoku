@@ -41,8 +41,10 @@ async function bootApp() {
   // jsdom の document を globalThis にセットして、initApp() が見つけられるようにする
   const originalDocument = globalThis.document;
   const originalWindow = globalThis.window;
+  const originalLocalStorage = globalThis.localStorage;
   globalThis.document = document;
   globalThis.window = window;
+  globalThis.localStorage = window.localStorage;
 
   initApp();
 
@@ -52,6 +54,7 @@ async function bootApp() {
     cleanup: () => {
       globalThis.document = originalDocument;
       globalThis.window = originalWindow;
+      globalThis.localStorage = originalLocalStorage;
     },
   };
 }

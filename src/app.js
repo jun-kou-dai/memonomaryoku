@@ -23,6 +23,8 @@ const CARD_DEFS = [
 
 let isGenerating = false;
 
+const API_KEY_STORAGE_KEY = 'buki-memo-api-key';
+
 export function initApp() {
   const $ = (sel) => document.querySelector(sel);
   const toneRange = $('#tone-range');
@@ -33,6 +35,22 @@ export function initApp() {
     toneDisplay.textContent = TONE_LABELS[toneRange.value];
   });
   toneDisplay.textContent = TONE_LABELS[toneRange.value];
+
+  // API KeyをlocalStorageから復元
+  const savedKey = localStorage.getItem(API_KEY_STORAGE_KEY);
+  if (savedKey) {
+    $('#api-key-input').value = savedKey;
+  }
+
+  // API Key変更時に自動保存
+  $('#api-key-input').addEventListener('input', () => {
+    const key = $('#api-key-input').value.trim();
+    if (key) {
+      localStorage.setItem(API_KEY_STORAGE_KEY, key);
+    } else {
+      localStorage.removeItem(API_KEY_STORAGE_KEY);
+    }
+  });
 
   // Buttons
   $('#btn-generate').addEventListener('click', () => handleGenerate($, 'normal'));
@@ -45,7 +63,7 @@ export function initApp() {
 
 function handleClear($) {
   $('#fact-input').value = '';
-  $('#api-key-input').value = '';
+  // API Keyは消さない（毎回入力し直すのは面倒なので）
   $('#mode-select').value = 'admin';
   $('#tone-range').value = '2';
   $('#tone-display').textContent = TONE_LABELS[2];
