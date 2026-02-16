@@ -83,8 +83,8 @@ ${extraInstruction}`;
 }
 
 /**
- * AI APIを呼び出す（30秒タイムアウト付き）
- * apiKey がなければデモデータを返す（開発用）
+ * AI呼び出し — Gemini API
+ * apiKey がなければデモデータを返す
  */
 async function callAI(prompt, apiKey, variant, mode) {
   if (!apiKey) {
@@ -95,36 +95,30 @@ async function callAI(prompt, apiKey, variant, mode) {
   const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
   try {
-    // 開発時: Viteプロキシ経由（CORS回避）
-    // 本番時: 直接呼び出し
-    const isDev = typeof location !== 'undefined' &&
-      (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
-    const apiUrl = isDev
-      ? '/api/anthropic/v1/messages'
-      : 'https://api.anthropic.com/v1/messages';
+    const model = 'gemini-2.0-flash';
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const response = await fetch(apiUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        ...(isDev ? {} : { 'anthropic-dangerous-direct-browser-access': 'true' }),
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250929',
-        max_tokens: 2048,
-        messages: [{ role: 'user', content: prompt }],
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.8,
+        },
       }),
       signal: controller.signal,
     });
 
     if (!response.ok) {
-      throw new Error(`API error: ${response.status} ${response.statusText}`);
+      const err = await response.json().catch(() => ({}));
+      const msg = err.error?.message || `${response.status} ${response.statusText}`;
+      throw new Error(`Gemini API error: ${msg}`);
     }
 
     const result = await response.json();
-    const text = result.content?.[0]?.text || '';
+    const text = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
     // JSON部分を抽出（余計なテキストがあっても対応）
     const jsonMatch = text.match(/\{[\s\S]*\}/);
