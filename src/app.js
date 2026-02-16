@@ -62,7 +62,7 @@ async function handleGenerate($, variant) {
     const { data, meta } = await generate(fact, mode, tone, apiKey, variant);
     renderOutput(data, meta);
   } catch (e) {
-    alert(`予期しないエラー: ${e.message}`);
+    showError(e.message);
   } finally {
     isGenerating = false;
     setButtonsDisabled(false);
@@ -85,6 +85,19 @@ function hideOutput() {
   document.querySelector('.output-section').classList.remove('active');
   document.querySelector('.gate-log').classList.remove('active');
   document.querySelector('.meta-info').classList.remove('active');
+  const errorEl = document.querySelector('.error-message');
+  if (errorEl) errorEl.classList.remove('active');
+}
+
+function showError(message) {
+  let errorEl = document.querySelector('.error-message');
+  if (!errorEl) {
+    errorEl = document.createElement('div');
+    errorEl.className = 'error-message';
+    document.querySelector('.loading').insertAdjacentElement('afterend', errorEl);
+  }
+  errorEl.textContent = `エラー: ${message}`;
+  errorEl.classList.add('active');
 }
 
 function renderOutput(data, meta) {

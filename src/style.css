@@ -453,6 +453,21 @@ body {
   font-size: 0.75rem;
 }
 
+/* ===== ERROR MESSAGE ===== */
+.error-message {
+  background: var(--danger);
+  color: white;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  display: none;
+}
+
+.error-message.active {
+  display: block;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 480px) {
   .container { padding: 12px; }

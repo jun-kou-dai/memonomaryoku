@@ -95,13 +95,21 @@ async function callAI(prompt, apiKey, variant) {
   const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    // 開発時: Viteプロキシ経由（CORS回避）
+    // 本番時: 直接呼び出し
+    const isDev = typeof location !== 'undefined' &&
+      (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
+    const apiUrl = isDev
+      ? '/api/anthropic/v1/messages'
+      : 'https://api.anthropic.com/v1/messages';
+
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
+        ...(isDev ? {} : { 'anthropic-dangerous-direct-browser-access': 'true' }),
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5-20250929',
