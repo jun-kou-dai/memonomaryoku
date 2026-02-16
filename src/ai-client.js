@@ -95,7 +95,7 @@ async function callAI(prompt, apiKey, variant, mode) {
   const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
   try {
-    const model = 'gemini-2.0-flash';
+    const model = 'gemini-2.5-pro-preview-06-05';
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const response = await fetch(apiUrl, {
