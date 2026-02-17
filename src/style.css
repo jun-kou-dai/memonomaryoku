@@ -122,6 +122,28 @@ body {
   border-color: var(--accent);
 }
 
+/* ===== CUSTOM MODE INPUT ===== */
+.mode-custom-input {
+  display: none;
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  margin-top: 6px;
+}
+
+.mode-custom-input.active {
+  display: block;
+}
+
+.mode-custom-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
 .tone-display {
   text-align: center;
   font-size: 0.8rem;

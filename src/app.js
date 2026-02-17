@@ -29,12 +29,19 @@ export function initApp() {
   const $ = (sel) => document.querySelector(sel);
   const toneRange = $('#tone-range');
   const toneDisplay = $('#tone-display');
+  const modeSelect = $('#mode-select');
+  const modeCustomInput = $('#mode-custom-input');
 
   // Tone slider
   toneRange.addEventListener('input', () => {
     toneDisplay.textContent = TONE_LABELS[toneRange.value];
   });
   toneDisplay.textContent = TONE_LABELS[toneRange.value];
+
+  // Mode select — カスタム選択時にテキスト入力欄を表示
+  modeSelect.addEventListener('change', () => {
+    modeCustomInput.classList.toggle('active', modeSelect.value === 'custom');
+  });
 
   // API KeyをlocalStorageから復元
   const savedKey = localStorage.getItem(API_KEY_STORAGE_KEY);
@@ -68,6 +75,8 @@ function handleClear($) {
   $('#fact-input').value = '';
   // API Keyは消さない（毎回入力し直すのは面倒なので）
   $('#mode-select').value = 'admin';
+  $('#mode-custom-input').value = '';
+  $('#mode-custom-input').classList.remove('active');
   $('#tone-range').value = '2';
   $('#tone-display').textContent = TONE_LABELS[2];
   hideOutput();
@@ -108,7 +117,16 @@ async function handleGenerate($, variant) {
     return;
   }
 
-  const mode = $('#mode-select').value;
+  const modeSelect = $('#mode-select').value;
+  let mode = modeSelect;
+  if (modeSelect === 'custom') {
+    const customMode = $('#mode-custom-input').value.trim();
+    if (!customMode) {
+      alert('Modeのカスタム入力欄に領域を入力してください（例：教育、投資、飲食店経営）');
+      return;
+    }
+    mode = customMode;
+  }
   const tone = parseInt($('#tone-range').value, 10);
   const apiKey = $('#api-key-input').value.trim();
   const isDemo = !apiKey;

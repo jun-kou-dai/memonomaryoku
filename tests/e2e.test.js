@@ -117,11 +117,11 @@ describe('E2E: DOM - HTMLの構造検証', () => {
     expect(document.querySelector('.flow-section')).not.toBeNull();
   });
 
-  it('Modeセレクトに4つの選択肢がある', () => {
+  it('Modeセレクトに5つの選択肢がある（カスタム含む）', () => {
     const options = document.querySelectorAll('#mode-select option');
-    expect(options.length).toBe(4);
+    expect(options.length).toBe(5);
     const values = [...options].map((o) => o.value);
-    expect(values).toEqual(['admin', 'gym', 'product', 'personal']);
+    expect(values).toEqual(['admin', 'gym', 'product', 'personal', 'custom']);
   });
 
   it('Toneスライダーの初期値が2（標準）', () => {
