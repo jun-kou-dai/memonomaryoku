@@ -164,50 +164,63 @@ ${JSON_FORMAT}`;
 /**
  * AI呼び出し — Gemini API
  * apiKey がなければデモデータを返す
+ * モデルフォールバック: gemini-2.5-flash → gemini-2.0-flash
  */
+const MODEL_CHAIN = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+
 async function callAI(prompt, apiKey, variant, mode) {
   if (!apiKey) {
     return getDemoResponse(variant, mode);
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+  let lastError = null;
 
-  try {
-    const model = 'gemini-2.5-flash';
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  for (const model of MODEL_CHAIN) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          temperature: getTemperature(variant),
-        },
-      }),
-      signal: controller.signal,
-    });
+    try {
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      const msg = err.error?.message || `${response.status} ${response.statusText}`;
-      throw new Error(`Gemini API error: ${msg}`);
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: 'application/json',
+            temperature: getTemperature(variant),
+          },
+        }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        const msg = err.error?.message || `${response.status} ${response.statusText}`;
+        lastError = new Error(`[${model}] ${msg}`);
+        continue; // 次のモデルを試す
+      }
+
+      const result = await response.json();
+      const text = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+      // JSON部分を抽出（余計なテキストがあっても対応）
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        lastError = new Error(`[${model}] AIの応答にJSONが含まれていない`);
+        continue;
+      }
+      return jsonMatch[0];
+    } catch (e) {
+      lastError = new Error(`[${model}] ${e.message}`);
+      continue;
+    } finally {
+      clearTimeout(timeoutId);
     }
-
-    const result = await response.json();
-    const text = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-    // JSON部分を抽出（余計なテキストがあっても対応）
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('AIの応答にJSONが含まれていない');
-    }
-    return jsonMatch[0];
-  } finally {
-    clearTimeout(timeoutId);
   }
+
+  throw lastError || new Error('全モデルで失敗');
 }
 
 /**
@@ -532,6 +545,7 @@ export async function generate(fact, mode, tone, apiKey, variant = 'normal') {
 
   // フォールバック
   gateLog.push('--- フォールバック発動 ---');
+  gateLog.push('原因: 上記エラーにより全試行失敗。API Keyとモデルの利用可否を確認してください。');
   const data = createFallback(fact, variant);
   return { data, meta: { attempt: MAX_RETRY + 1, fallback: true, gateLog } };
 }
