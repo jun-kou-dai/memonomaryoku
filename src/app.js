@@ -144,6 +144,15 @@ function renderOutput(data, meta, isDemo, variant) {
     cardsContainer.appendChild(demoBanner);
   }
 
+  // フォールバック時の警告表示
+  if (meta.fallback && !isDemo) {
+    const lastError = meta.gateLog.filter(l => l.startsWith('エラー:') || l.includes('失格') || l.includes('スキーマ違反')).pop() || '';
+    const warnBanner = document.createElement('div');
+    warnBanner.className = 'fallback-warning';
+    warnBanner.innerHTML = `⚠ AI生成に失敗したため、固定テンプレートを表示中です。${lastError ? '<br>' + escapeHtml(lastError) : ''}<br><small>API Keyが正しいか確認してください。下の「Quality Gate Log」に詳細があります。</small>`;
+    cardsContainer.insertBefore(warnBanner, cardsContainer.firstChild);
+  }
+
   CARD_DEFS.forEach((def) => {
     const card = createCard(def, data[def.key]);
     cardsContainer.appendChild(card);

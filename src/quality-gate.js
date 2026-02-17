@@ -1,6 +1,7 @@
 /**
  * Quality Gate — Spec Step 2: 無難回答排除
  * NGワード/NGパターン検知 → 失格判定
+ * ※NG 3つ以上で失格（1〜2個は警告のみ）
  */
 
 const NG_WORDS = [
@@ -8,6 +9,8 @@ const NG_WORDS = [
   '慎重に', '引き続き', '多角的', '適切に', '一概には',
   '今後の動向', '見守る', '留意', '踏まえ', '鑑み',
 ];
+
+const NG_THRESHOLD = 3; // この数以上のNGワードで失格
 
 const ABSTRACT_PATTERNS = [
   /^.{0,15}$/, // 15文字以下は短すぎて抽象
@@ -72,8 +75,8 @@ export function qualityGate(data) {
 
   const allText = allTexts.join(' ');
   const ngFound = detectNgWords(allText);
-  if (ngFound.length > 0) {
-    reasons.push(`NGワード検出: ${ngFound.join(', ')}`);
+  if (ngFound.length >= NG_THRESHOLD) {
+    reasons.push(`NGワード${ngFound.length}個検出（閾値${NG_THRESHOLD}）: ${ngFound.join(', ')}`);
   }
 
   // next_actionが抽象的
