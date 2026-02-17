@@ -92,8 +92,17 @@ describe('Quality Gate 総合判定', () => {
     expect(result.reasons).toHaveLength(0);
   });
 
-  it('NGワード含むデータは失格', () => {
+  it('NGワード1〜2個はパスする（閾値3）', () => {
     const data = { ...GOOD_DATA, ichigeki: 'バランスが重要だ' };
+    const result = qualityGate(data);
+    expect(result.pass).toBe(true);
+  });
+
+  it('NGワード3個以上で失格', () => {
+    const data = {
+      ...GOOD_DATA,
+      ichigeki: 'バランスが重要だ。総合的に検討し、慎重に注視すべきだ',
+    };
     const result = qualityGate(data);
     expect(result.pass).toBe(false);
     expect(result.reasons.some((r) => r.includes('NGワード'))).toBe(true);
@@ -119,7 +128,7 @@ describe('Quality Gate 総合判定', () => {
   it('複数の失格理由が同時に返る', () => {
     const data = {
       ...GOOD_DATA,
-      ichigeki: 'バランスが大事',
+      ichigeki: 'バランスが大事で総合的に検討し慎重に注視すべき',
       next_action: '頑張る',
       counter: { objection: '短い', response: '短い' },
     };

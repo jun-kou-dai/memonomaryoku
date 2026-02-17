@@ -3,7 +3,7 @@
  * 「Spec正」「修正前にSpec回収」
  */
 
-import { generate } from './ai-client.js';
+import { generate, testApiConnection } from './ai-client.js';
 
 const TONE_LABELS = [
   '超カジュアル',
@@ -59,6 +59,9 @@ export function initApp() {
 
   // クリアボタン
   $('#btn-clear').addEventListener('click', () => handleClear($));
+
+  // API接続テストボタン
+  $('#btn-api-test').addEventListener('click', () => handleApiTest($));
 }
 
 function handleClear($) {
@@ -71,6 +74,29 @@ function handleClear($) {
   // 念のためボタンを有効化
   isGenerating = false;
   setButtonsDisabled(false);
+}
+
+async function handleApiTest($) {
+  const apiKey = $('#api-key-input').value.trim();
+  const resultEl = $('#api-test-result');
+  const btn = $('#btn-api-test');
+
+  btn.disabled = true;
+  btn.textContent = 'テスト中...';
+  resultEl.className = 'api-test-result testing';
+  resultEl.textContent = 'Gemini API に接続中...';
+
+  try {
+    const { ok, message } = await testApiConnection(apiKey);
+    resultEl.className = `api-test-result ${ok ? 'success' : 'failure'}`;
+    resultEl.textContent = message;
+  } catch (e) {
+    resultEl.className = 'api-test-result failure';
+    resultEl.textContent = `テスト失敗: ${e.message}`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '接続テスト';
+  }
 }
 
 async function handleGenerate($, variant) {

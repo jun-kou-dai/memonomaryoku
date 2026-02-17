@@ -39,8 +39,12 @@
 
       <div class="api-key-section">
         <label for="api-key-input">Gemini API Key（任意）</label>
-        <input type="password" id="api-key-input" placeholder="AIza..." />
+        <div class="api-key-row">
+          <input type="password" id="api-key-input" placeholder="AIza..." />
+          <button class="btn btn-test" id="btn-api-test" title="API Keyの接続テスト">接続テスト</button>
+        </div>
         <div class="api-key-hint">空欄ならデモデータで動作確認できます。<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">無料でKeyを取得</a></div>
+        <div class="api-test-result" id="api-test-result"></div>
       </div>
 
       <div class="button-hint">※ まずFactを入力してから「生成」を押してください。API Key空欄ならデモで動きます。</div>

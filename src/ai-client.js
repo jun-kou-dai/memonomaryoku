@@ -550,4 +550,45 @@ export async function generate(fact, mode, tone, apiKey, variant = 'normal') {
   return { data, meta: { attempt: MAX_RETRY + 1, fallback: true, gateLog } };
 }
 
+/**
+ * API接続テスト — 最小限のリクエストを各モデルに送り結果を返す
+ */
+export async function testApiConnection(apiKey) {
+  if (!apiKey) {
+    return { ok: false, message: 'API Keyが未入力です。' };
+  }
+
+  const results = [];
+
+  for (const model of MODEL_CHAIN) {
+    try {
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: 'テスト。「OK」とだけ返してください。' }] }],
+          generationConfig: { maxOutputTokens: 10 },
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '(応答なし)';
+        results.push({ model, status: 'OK', detail: text.slice(0, 50) });
+      } else {
+        const err = await response.json().catch(() => null);
+        const msg = err?.error?.message || `${response.status} ${response.statusText}`;
+        results.push({ model, status: 'NG', detail: msg });
+      }
+    } catch (e) {
+      results.push({ model, status: 'NG', detail: e.message });
+    }
+  }
+
+  const anyOk = results.some((r) => r.status === 'OK');
+  const lines = results.map((r) => `${r.model}: ${r.status} — ${r.detail}`);
+  return { ok: anyOk, message: lines.join('\n'), results };
+}
+
 export { buildPrompt, MODE_LABELS, TONE_LABELS };
